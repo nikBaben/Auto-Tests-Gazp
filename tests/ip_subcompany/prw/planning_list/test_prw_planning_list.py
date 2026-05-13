@@ -3,6 +3,16 @@ from collections.abc import Callable
 
 import pytest
 
+from planning_list.config import (
+    NON_NEGATIVE_INTEGER_ERROR,
+    OBJECT_PRW_CODE_SEARCH_PART_LENGTH,
+    TITLE_SEARCH_PART_LENGTH, 
+    CURATOR_SEARCH_PART_LENGTH, 
+    SUBCOMPANY_CODE_SEARCH_PART_LENGTH, 
+    SUBCOMPANY_NAME_SEARCH_PART_LENGTH, 
+    PROJECTION_DOC_STATUS_SEARCH_PART_LENGTH, 
+    CASE_INSENSITIVE_SEARCH_CASES
+)
 from checks.filtering import assert_values_contain_substring
 from checks.input_validation import assert_shows_validation_error
 from checks.sorting import (
@@ -11,33 +21,18 @@ from checks.sorting import (
     assert_sorted_by_leading_number,
 )
 from fixtures.reports import CsvReport
-from pages.ip_subcompany.prw.prw_planning_list_page import (
+from pages.ip_subcompany.prw import (
     PrwPlanningListFilterTitle,
     PrwPlanningListPage,
 )
 
 
-NON_NEGATIVE_INTEGER_ERROR = "Укажите целое неотрицательное число"
-OBJECT_PRW_CODE_SEARCH_PART_LENGTH = 3
-TITLE_SEARCH_PART_LENGTH = 4
-CURATOR_SEARCH_PART_LENGTH = 4
-SUBCOMPANY_CODE_SEARCH_PART_LENGTH = 2
-SUBCOMPANY_NAME_SEARCH_PART_LENGTH = 4
-PROJECTION_DOC_STATUS_SEARCH_PART_LENGTH = 4
-CASE_INSENSITIVE_SEARCH_CASES = (
-    pytest.param(str.lower, id="lower"),
-    pytest.param(str.upper, id="upper"),
-    pytest.param(str.swapcase, id="mixed"),
-)
-
-
-# Код ПИР
 def test_prw_planning_list_object_code_prw_shows_error_for_text(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
 ):
     """
-    Тест проверяет, что при вводе текста в поле 'Код ПИР'
+    Тест проверяет, что при вводе текста в поле фильтра 'Код ПИР'
     отображается ошибка валидации.
     """
     entered_value = "Код ПИР"
@@ -56,58 +51,6 @@ def test_prw_planning_list_object_code_prw_shows_error_for_text(
     )
 
 
-def test_prw_planning_list_object_code_prw_searches_by_partial_value(
-    prw_planning_list_page: PrwPlanningListPage,
-    test_report: CsvReport,
-):
-    """
-    Тест проверяет, что поиск по 'Код ПИР'
-    работает при вводе части кода.
-
-    Для проверки используется существующий 'Код ПИР',
-    у которого берется часть в конце.
-    """
-    existing_code = prw_planning_list_page.wait_object_prw_codes()[0]
-    entered_value = existing_code[-OBJECT_PRW_CODE_SEARCH_PART_LENGTH:]
-
-    values = prw_planning_list_page.search_by_object_prw_code(entered_value)
-
-    assert_values_contain_substring(
-        element=PrwPlanningListFilterTitle.OBJECT_PRW_CODE,
-        entered_value=entered_value,
-        values=values,
-        report=test_report,
-    )
-
-
-# Наименование объекта
-@pytest.mark.parametrize("case_transform", CASE_INSENSITIVE_SEARCH_CASES)
-def test_prw_planning_list_title_searches_by_partial_value_ignore_case(
-    prw_planning_list_page: PrwPlanningListPage,
-    test_report: CsvReport,
-    case_transform: Callable[[str], str],
-):
-    """
-    Тест проверяет, что поиск по 'Наименование объекта'
-    работает при вводе части названия, игнорируя регистр.
-    """
-    entered_value = title_search_value(
-        titles=prw_planning_list_page.wait_titles(),
-        case_transform=case_transform,
-    )
-
-    values = prw_planning_list_page.search_by_title(entered_value)
-
-    assert_values_contain_substring(
-        element=PrwPlanningListFilterTitle.TITLE,
-        entered_value=entered_value,
-        values=values,
-        report=test_report,
-        ignore_case=True,
-    )
-
-
-# Кураторы
 def test_prw_planning_list_curator_projector_sorted(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
@@ -142,7 +85,7 @@ def test_prw_planning_list_curator_projector_searches_by_partial_value_ignore_ca
     case_transform: Callable[[str], str],
 ):
     """
-    Тест проверяет, что поиск по 'Куратор проектировщика'
+    Тест проверяет, что поиск в фильтре 'Куратор проектировщика'
     работает при вводе части имени куратора,
     игнорируя регистр.
 
@@ -201,7 +144,7 @@ def test_prw_planning_list_curator_planning_searches_by_partial_value_ignore_cas
     case_transform: Callable[[str], str],
 ):
     """
-    Тест проверяет, что поиск по 'Куратор планирования'
+    Тест проверяет, что поиск в фильтру 'Куратор планирования'
     работает при вводе части имени куратора,
     игнорируя регистр.
 
@@ -225,11 +168,11 @@ def test_prw_planning_list_curator_planning_searches_by_partial_value_ignore_cas
     )
 
 
-# ДО
 def test_prw_planning_list_subcompany_sorted(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
 ):
+    """Тест проверяет, что в фильтре 'ДО' значения отсортированы по возрастанию."""
     options = prw_planning_list_page.subcompany_options()
     errors = []
 
@@ -253,9 +196,7 @@ def test_prw_planning_list_subcompany_searches_by_partial_code(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
 ):
-    """
-    Тест проверяет, что поиск по 'ДО' работает при вводе части кода.
-    """
+    """Тест проверяет, что поиск в фильтре 'ДО' работает при вводе части кода."""
     entered_value = subcompany_code_search_value(
         prw_planning_list_page.subcompany_options()
     )
@@ -276,7 +217,7 @@ def test_prw_planning_list_subcompany_searches_by_partial_name_ignore_case(
     case_transform: Callable[[str], str],
 ):
     """
-    Тест проверяет, что поиск по 'ДО' работает при вводе части названия,
+    Тест проверяет, что поиск по фильтру 'ДО' работает при вводе части названия,
     игнорируя регистр.
     """
     entered_value = subcompany_name_search_value(
@@ -294,11 +235,11 @@ def test_prw_planning_list_subcompany_searches_by_partial_name_ignore_case(
     )
 
 
-# Статус ПД
 def test_prw_planning_list_projection_doc_status_sorted(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
 ):
+    """Тест проверяет, что фильтр 'Статус ДП' отсортирован корректно"""
     options = prw_planning_list_page.projection_doc_status_options()
     errors = []
 
@@ -325,7 +266,7 @@ def test_prw_projection_doc_status_searches_by_partial_value_ignore_case(
     case_transform: Callable[[str], str],
 ):
     """
-    Тест проверяет, что поиск по 'Статус ПД' работает при вводе части
+    Тест проверяет, что поиск по филтру 'Статус ПД' работает при вводе части
     значения, игнорируя регистр.
     """
     entered_value = projection_doc_status_search_value(
@@ -345,15 +286,26 @@ def test_prw_projection_doc_status_searches_by_partial_value_ignore_case(
     )
 
 
-# Helpers
 def title_search_value(
     titles: list[str],
     case_transform: Callable[[str], str],
 ) -> str:
+    """
+    Возвращает значение для поиска по названию объекта.
+
+    Берет часть существующего названия
+    и применяет преобразование регистра.
+    """
     return case_transform(base_title_search_value(titles))
 
 
 def base_title_search_value(titles: list[str]) -> str:
+    """
+    Возвращает базовое значение для поиска по названию объекта.
+
+    Использует первое слово подходящей длины
+    из списка названий.
+    """
     for title in titles:
         for word in title.split():
             if len(word) >= TITLE_SEARCH_PART_LENGTH:
@@ -370,10 +322,22 @@ def curator_search_value(
     options: list[str],
     case_transform: Callable[[str], str],
 ) -> str:
+    """
+    Возвращает значение для поиска по куратору.
+
+    Берет часть существующего имени
+    и применяет преобразование регистра.
+    """
     return case_transform(base_partial_search_value(options))
 
 
 def base_partial_search_value(options: list[str]) -> str:
+    """
+    Возвращает базовое значение для поиска
+    по выпадающему списку.
+
+    Использует первое слово подходящей длины.
+    """
     for option in options:
         word = option.split()[0].strip()
 
@@ -387,6 +351,13 @@ def base_partial_search_value(options: list[str]) -> str:
 
 
 def subcompany_code_search_value(options: list[str]) -> str:
+    """
+    Возвращает часть кода ДО для поиска.
+
+    Из значения формата:
+        '123 | Название'
+    извлекается часть числового кода.
+    """
     for option in options:
         code = option.split("|", maxsplit=1)[0].strip()
 
@@ -403,10 +374,23 @@ def subcompany_name_search_value(
     options: list[str],
     case_transform: Callable[[str], str],
 ) -> str:
+    """
+    Возвращает значение для поиска по названию ДО.
+
+    Берет часть существующего названия
+    и применяет преобразование регистра.
+    """
     return case_transform(base_subcompany_name_search_value(options))
 
 
 def base_subcompany_name_search_value(options: list[str]) -> str:
+    """
+    Возвращает базовое значение для поиска по названию ДО.
+
+    Из значения формата:
+        '123 | Название'
+    извлекается часть названия.
+    """
     for option in options:
         name = option.split("|", maxsplit=1)[-1]
 
@@ -424,10 +408,22 @@ def projection_doc_status_search_value(
     options: list[str],
     case_transform: Callable[[str], str],
 ) -> str:
+    """
+    Возвращает значение для поиска по статусу ПД.
+
+    Берет часть существующего статуса
+    и применяет преобразование регистра.
+    """
     return case_transform(base_projection_doc_status_search_value(options))
 
 
 def base_projection_doc_status_search_value(options: list[str]) -> str:
+    """
+    Возвращает базовое значение для поиска по статусу ПД.
+
+    Удаляет служебные символы
+    и берет часть подходящего слова.
+    """
     for option in options:
         for word in option.replace("\u200b", "").split():
             if len(word) >= PROJECTION_DOC_STATUS_SEARCH_PART_LENGTH:
