@@ -5,7 +5,10 @@ import pytest
 
 from planning_list.config import (
     NON_NEGATIVE_INTEGER_ERROR,
-    CASE_INSENSITIVE_SEARCH_CASES
+    CASE_INSENSITIVE_SEARCH_CASES, 
+    PROJECTION_DOC_STATUS_SEARCH_PART_LENGTH, 
+    CURATOR_SEARCH_PART_LENGTH, 
+    SUBCOMPANY_NAME_SEARCH_PART_LENGTH,
 )
 from checks.filtering import assert_values_contain_substring
 from checks.input_validation import assert_shows_validation_error
@@ -14,16 +17,15 @@ from checks.sorting import (
     assert_sorted_alphabetically,
     assert_sorted_by_leading_number,
 )
+from checks.utils import (
+    partial_filter_search_value,
+    partial_filter_code_search_value,
+    partial_filter_name_search_value,
+)
 from fixtures.reports import CsvReport
 from pages.ip_subcompany.prw import (
     PrwPlanningListFilterTitle,
     PrwPlanningListPage,
-)
-from planning_list.helpers import (
-    curator_search_value,
-    subcompany_code_search_value,
-    subcompany_name_search_value,
-    projection_doc_status_search_value
 )
 
 
@@ -92,8 +94,9 @@ def test_prw_planning_list_curator_projector_searches_by_partial_value_ignore_ca
     Для проверки используется существующий куратор,
     у которого берется часть имени.
     """
-    entered_value = curator_search_value(
+    entered_value = partial_filter_search_value(
         options=prw_planning_list_page.projector_curator_options(),
+        part_length = CURATOR_SEARCH_PART_LENGTH,
         case_transform=case_transform,
     )
     options = prw_planning_list_page.projector_curator_options_by_search(
@@ -151,8 +154,9 @@ def test_prw_planning_list_curator_planning_searches_by_partial_value_ignore_cas
     Для проверки используется существующий куратор,
     у которого берется часть имени.
     """
-    entered_value = curator_search_value(
+    entered_value = partial_filter_search_value(
         options=prw_planning_list_page.planning_curator_options(),
+        part_length= CURATOR_SEARCH_PART_LENGTH,
         case_transform=case_transform,
     )
     options = prw_planning_list_page.planning_curator_options_by_search(
@@ -197,8 +201,9 @@ def test_prw_planning_list_subcompany_searches_by_partial_code(
     test_report: CsvReport,
 ):
     """Тест проверяет, что поиск в фильтре 'ДО' работает при вводе части кода."""
-    entered_value = subcompany_code_search_value(
-        prw_planning_list_page.subcompany_options()
+    entered_value = partial_filter_code_search_value(
+        options = prw_planning_list_page.subcompany_options(),
+        part_length = SUBCOMPANY_CODE_SEARCH_PART_LENGTH
     )
     options = prw_planning_list_page.subcompany_options_by_search(entered_value)
 
@@ -220,9 +225,10 @@ def test_prw_planning_list_subcompany_searches_by_partial_name_ignore_case(
     Тест проверяет, что поиск по фильтру 'ДО' работает при вводе части названия,
     игнорируя регистр.
     """
-    entered_value = subcompany_name_search_value(
-        options=prw_planning_list_page.subcompany_options(),
-        case_transform=case_transform,
+    entered_value = partial_filter_name_search_value(
+        options = prw_planning_list_page.subcompany_options(),
+        part_length = SUBCOMPANY_NAME_SEARCH_PART_LENGTH,
+        case_transform = case_transform
     )
     options = prw_planning_list_page.subcompany_options_by_search(entered_value)
 
@@ -269,8 +275,9 @@ def test_prw_projection_doc_status_searches_by_partial_value_ignore_case(
     Тест проверяет, что поиск по филтру 'Статус ПД' работает при вводе части
     значения, игнорируя регистр.
     """
-    entered_value = projection_doc_status_search_value(
+    entered_value = partial_filter_search_value(
         options=prw_planning_list_page.projection_doc_status_options(),
+        part_length = PROJECTION_DOC_STATUS_SEARCH_PART_LENGTH,
         case_transform=case_transform,
     )
     options = prw_planning_list_page.projection_doc_status_options_by_search(
