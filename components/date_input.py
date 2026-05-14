@@ -1,5 +1,8 @@
-from __future__ import annotations
-
+"""
+Обертка для работы с Ant Design DatePicker.
+Модуль выбирает даты через календарь Ant DatePicker, а не через прямой ввод
+строки.
+"""
 from datetime import date, datetime
 
 from selenium.webdriver.common.by import By
@@ -13,6 +16,12 @@ from components.element_actions import ElementActions
 
 
 class DateInput:
+    """
+    Компонент для выбора даты в Ant Design DatePicker.
+
+    Экземпляр привязан к конкретному input по HTML id. Дата передается и
+    проверяется в формате `ДД.ММ.ГГГГ`.
+    """
     DATE_FORMAT = "%d.%m.%Y"
     MONTHS = {
         "Янв": 1,
@@ -47,9 +56,16 @@ class DateInput:
         self.actions = ElementActions(driver)
 
     def fill(self, value: str) -> None:
+        """
+        Выбирает дату в поле.
+
+        Метод является унифицированным alias для `select_date`, чтобы Page Object
+        мог работать с датой так же, как с обычным input.
+        """
         self.select_date(value)
 
     def select_date(self, value: str) -> None:
+        """Выбирает дату через календарь DatePicker."""
         target_date = self.parse_date(value)
         self.close_open_dropdown()
         element = self.wait.until(EC.element_to_be_clickable((By.ID, self.input_id)))
@@ -61,10 +77,17 @@ class DateInput:
         self.close_open_dropdown()
 
     def value(self) -> str:
+        """Возвращает текущее значение input DatePicker."""
         element = self.wait.until(EC.presence_of_element_located((By.ID, self.input_id)))
         return element.get_attribute("value") or ""
 
     def go_to_month(self, target_date: date) -> None:
+        """
+        Переходит в календаре к месяцу целевой даты.
+
+        Метод кликает кнопки предыдущего или следующего месяца, пока открытый
+        календарь не покажет нужные месяц и год
+        """
         for _ in range(240):
             current_year, current_month = self.panel_year_month()
             month_delta = (
@@ -92,6 +115,7 @@ class DateInput:
         raise AssertionError(f"Не удалось открыть месяц для даты {target_date}")
 
     def click_day(self, target_date: date) -> None:
+        """Кликает день целевой даты в открытом календаре."""
         day = self.visible_dropdown().find_element(
             By.CSS_SELECTOR,
             f"td[title='{target_date.isoformat()}'] .ant-picker-cell-inner",
@@ -99,6 +123,7 @@ class DateInput:
         self.actions.click(day)
 
     def panel_year_month(self) -> tuple[int, int]:
+        """Возвращает год и месяц, которые сейчас открыты в DatePicker."""
         dropdown = self.visible_dropdown()
         month_text = dropdown.find_element(
             By.CSS_SELECTOR,
@@ -112,6 +137,7 @@ class DateInput:
         return int(year_text), self.MONTHS[month_text]
 
     def visible_dropdown(self) -> WebElement:
+        """Возвращает видимый dropdown текущего DatePicker."""
         return self.wait.until(
             EC.visibility_of_element_located(
                 (
@@ -122,7 +148,9 @@ class DateInput:
         )
 
     def close_open_dropdown(self) -> None:
+        """Закрывает открытый DatePicker dropdown нажатием Escape."""
         self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
 
     def parse_date(self, value: str) -> date:
+        """Преобразует строку `ДД.ММ.ГГГГ` в объект date."""
         return datetime.strptime(value, self.DATE_FORMAT).date()
