@@ -1,7 +1,7 @@
 """Объект страницы 'План ПИР'."""
 from enum import StrEnum
 
-from components.ant_table_schemas import AntTableColumn
+from components.schemas.ant_table_schema import AntTableColumn
 from pages.filtered_table_page import FilteredTablePage
 from utils.value_matchers import (
     first_word,
@@ -18,7 +18,7 @@ class PrwPlanningListFilterTitle(StrEnum):
     TITLE = "Наименование объекта"
     PROJECTOR_CURATOR = "Куратор проектировщика"
     PLANNING_CURATOR = "Куратор планирования"
-    SUBCOMPANY = "Дочернее общество"
+    SUBCOMPANY = "ДО"
     PROJECTION_DOC_STATUS = "Статус ПД"
 
 
@@ -33,41 +33,13 @@ class PrwPlanningListFilterId(StrEnum):
 
 
 class PrwPlanningListColumn:
-    """Колонки таблицы на странице плана ПИР."""
-
-    OBJECT_PRW_CODE = AntTableColumn(headers=("Код ПИР",))
-    TITLE = AntTableColumn(
-        headers=(
-            "Объект проектирования",
-            "Наименование объекта",
-        )
-    )
-    SUBCOMPANY = AntTableColumn(
-        headers=(
-            "Зак Т.",
-            "Зак Т",
-            "Дочернее общество",
-            "ДО",
-            "Код заказчика",
-            "Код зак.",
-        )
-    )
-    PROJECTION_DOC_STATUS = AntTableColumn(
-        headers=("Статус ПД", "Статус утверждения ПД")
-    )
-    PROJECTOR_CURATOR = AntTableColumn(
-        headers=(
-            "Куратор проектирования",
-            "Куратор проектировщика",
-            "Куратор проектир.",
-        )
-    )
-    PLANNING_CURATOR = AntTableColumn(
-        headers=(
-            "Куратор планирования",
-            "Куратор планир.",
-        )
-    )
+    """Колонки таблицы на странице."""
+    OBJECT_PRW_CODE_COLUMN = AntTableColumn(headers=("Код ПИР",))
+    TITLE_COLUMN = AntTableColumn(headers=("Объект проектирования",))
+    SUBCOMPANY_COLUMN = AntTableColumn(headers=("Зак Т.",))
+    PROJECTION_DOC_STATUS_COLUMN = AntTableColumn(headers=("Статус ПД",))
+    PROJECTOR_CURATOR_COLUMN = AntTableColumn(headers=("Куратор проектирования",))
+    PLANNING_CURATOR_COLUMN = AntTableColumn(headers=("Куратор планирования",))
 
 
 class PrwPlanningListPage(FilteredTablePage):
@@ -97,7 +69,7 @@ class PrwPlanningListPage(FilteredTablePage):
     def object_prw_codes(self) -> list[str]:
         """Вернуть видимые значения колонки таблицы «Код ПИР»."""
         return self.table_column_values_by_spec(
-            PrwPlanningListColumn.OBJECT_PRW_CODE
+            PrwPlanningListColumn.OBJECT_PRW_CODE_COLUMN
         )
 
     def wait_object_prw_codes(self) -> list[str]:
@@ -118,7 +90,7 @@ class PrwPlanningListPage(FilteredTablePage):
 
     def titles(self) -> list[str]:
         """Вернуть видимые значения колонки «Наименование объекта»."""
-        return self.table_column_values_by_spec(PrwPlanningListColumn.TITLE)
+        return self.table_column_values_by_spec(PrwPlanningListColumn.TITLE_COLUMN)
 
     def wait_titles(self) -> list[str]:
         """Дождаться появления значений в колонке «Наименование объекта»."""
@@ -136,7 +108,7 @@ class PrwPlanningListPage(FilteredTablePage):
     def projector_curators(self) -> list[str]:
         """Вернуть видимые значения колонки «Куратор проектировщика»."""
         return self.table_column_values_by_spec(
-            PrwPlanningListColumn.PROJECTOR_CURATOR
+            PrwPlanningListColumn.PROJECTOR_CURATOR_COLUMN
         )
 
     def projector_curator_options(self) -> list[str]:
@@ -168,7 +140,7 @@ class PrwPlanningListPage(FilteredTablePage):
     def planning_curators(self) -> list[str]:
         """Вернуть видимые значения колонки «Куратор планирования»."""
         return self.table_column_values_by_spec(
-            PrwPlanningListColumn.PLANNING_CURATOR
+            PrwPlanningListColumn.PLANNING_CURATOR_COLUMN
         )
 
     def planning_curator_options(self) -> list[str]:
@@ -199,7 +171,7 @@ class PrwPlanningListPage(FilteredTablePage):
 
     def subcompany_codes(self) -> list[str]:
         """Вернуть видимые значения колонки «Дочернее общество»."""
-        return self.table_column_values_by_spec(PrwPlanningListColumn.SUBCOMPANY)
+        return self.table_column_values_by_spec(PrwPlanningListColumn.SUBCOMPANY_COLUMN)
 
     def subcompany_options(self) -> list[str]:
         """Вернуть полный список опций фильтра «Дочернее общество»."""
@@ -233,7 +205,7 @@ class PrwPlanningListPage(FilteredTablePage):
     def projection_doc_statuses(self) -> list[str]:
         """Вернуть видимые значения колонки «Статус ПД»."""
         return self.table_column_values_by_spec(
-            PrwPlanningListColumn.PROJECTION_DOC_STATUS
+            PrwPlanningListColumn.PROJECTION_DOC_STATUS_COLUMN
         )
 
     def projection_doc_status_options(self) -> list[str]:
