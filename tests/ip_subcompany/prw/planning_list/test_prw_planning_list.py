@@ -3,11 +3,12 @@ from collections.abc import Callable
 
 import pytest
 
-from planning_list.config import (
+from tests.ip_subcompany.prw.planning_list.config import (
     NON_NEGATIVE_INTEGER_ERROR,
     CASE_INSENSITIVE_SEARCH_CASES, 
     PROJECTION_DOC_STATUS_SEARCH_PART_LENGTH, 
     CURATOR_SEARCH_PART_LENGTH, 
+    SUBCOMPANY_CODE_SEARCH_PART_LENGTH,
     SUBCOMPANY_NAME_SEARCH_PART_LENGTH,
 )
 from checks.filtering import assert_values_contain_substring
