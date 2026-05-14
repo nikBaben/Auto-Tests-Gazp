@@ -1,11 +1,16 @@
-from __future__ import annotations
+"""
+CSV-отчетность для pytest-тестов.
 
-import csv
-import json
-from datetime import datetime
-from pathlib import Path
+Модуль добавляет pytest-опцию `--csv-report`, предоставляет фикстуру
+`test_report` для записи деталей проверок и сохраняет итоговый CSV-файл
+после завершения тестовой сессии.
+"""
 from typing import Any
+from pathlib import Path
+import csv
+from datetime import datetime
 
+import json
 import pytest
 from pydantic import BaseModel, Field
 
@@ -22,6 +27,7 @@ REPORT_HEADERS = [
 
 
 class ReportEntry(BaseModel):
+    """Одна строка детализированного отчета проверки."""
     element: str
     expected: Any
     actual: Any
@@ -29,6 +35,7 @@ class ReportEntry(BaseModel):
 
 
 class CsvReport(BaseModel):
+    """Накопитель строк отчета для одного теста."""
     entries: list[ReportEntry] = Field(default_factory=list)
 
     def add(
@@ -39,6 +46,7 @@ class CsvReport(BaseModel):
         actual: Any,
         message: str = "",
     ) -> None:
+        """Добавляет строку проверки в отчет текущего теста."""
         self.entries.append(
             ReportEntry(
                 element=element,
@@ -50,6 +58,7 @@ class CsvReport(BaseModel):
 
 
 def pytest_addoption(parser):
+    """Регистрирует CLI-опцию для пути к CSV-отчету."""
     parser.addoption(
         "--csv-report",
         action="store",
@@ -59,11 +68,13 @@ def pytest_addoption(parser):
 
 
 def pytest_sessionstart(session):
+    """Инициализирует общий список строк CSV-отчета перед запуском тестов."""
     session.config.csv_report_rows = []
 
 
 @pytest.fixture
 def test_report(request) -> CsvReport:
+    """Создает отчет для текущего теста."""
     report = CsvReport()
     request.node.csv_report = report
     return report
@@ -71,6 +82,7 @@ def test_report(request) -> CsvReport:
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
+    """Переносит строки отчета теста в общий CSV-накопитель."""
     outcome = yield
     result = outcome.get_result()
 
@@ -97,6 +109,7 @@ def pytest_runtest_makereport(item, call):
 
 
 def pytest_sessionfinish(session):
+    """Сохраняет накопленные строки отчета в CSV-файл после завершения сессии."""
     report_path = Path(session.config.getoption("--csv-report"))
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -107,6 +120,7 @@ def pytest_sessionfinish(session):
 
 
 def empty_entry() -> ReportEntry:
+    """Создает техническую строку отчета для тестов без деталей проверки."""
     return ReportEntry(
         element="",
         expected="",
@@ -116,6 +130,7 @@ def empty_entry() -> ReportEntry:
 
 
 def serialize(value: Any) -> str:
+    """Сериализует значение для записи в CSV."""
     if isinstance(value, str):
         return value
 
