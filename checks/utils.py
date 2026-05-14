@@ -1,10 +1,30 @@
+"""Утилиты подготовки тестовых данных для проверок фильтров."""
 from collections.abc import Callable
+from datetime import date, datetime
+
+from utils.value_matchers import (
+    normalized_text,
+    person_key,
+    same_option_text,
+    subcompany_code,
+)
+
+
+DATE_FORMAT = "%d.%m.%Y"
+
+
+def identity(value: str) -> str:
+    """
+    Возвращает значение без изменений.
+    Используется как преобразование регистра по умолчанию.
+    """
+    return value
 
 
 def partial_filter_search_value(
     options: list[str],
     part_length: int,
-    case_transform: Callable[[str], str] = lambda value: value,
+    case_transform: Callable[[str], str] = identity,
 ) -> str:
     """
     Возвращает часть существующего значения фильтра для поиска.
@@ -60,8 +80,8 @@ def partial_filter_code_search_value(
 def partial_filter_name_search_value(
     options: list[str],
     part_length: int,
+    case_transform: Callable[[str], str] = identity,
     separator: str = "|",
-    case_transform: Callable[[str], str] = lambda value: value,
 ) -> str:
     """
     Возвращает часть названия из значения фильтра.
@@ -83,3 +103,113 @@ def partial_filter_name_search_value(
         case_transform=case_transform,
     )
 
+
+def first_non_empty(values: list[str]) -> str:
+    """
+    Возвращает первое непустое значение из списка.
+    Значение считается непустым после нормализации 
+    через normalized_text.
+    """
+    for value in values:
+        if normalized_text(value):
+            return value
+
+    raise AssertionError(f"Не найдено непустое значение в таблице: {values}")
+
+
+def first_non_empty_or_none(values: list[str]) -> str | None:
+    """Возвращает первое непустое значение из списка или None.
+
+    Используется в тестах, где отсутствие данных должно приводить не к падению,
+    а к контролируемому skip или отдельной обработке.
+    """
+    for value in values:
+        if normalized_text(value):
+            return value
+
+    return None
+
+
+def matching_person_option(options: list[str], table_value: str) -> str:
+    """
+    Находит option куратора, соответствующую значению из таблицы.
+
+    Сравнение выполняется через person_key, чтобы учитывать разные форматы
+    отображения ФИО в таблице и dropdown.
+    """
+    table_key = person_key(table_value)
+
+    for option in options:
+        if person_key(option) == table_key:
+            return option
+
+    raise AssertionError(
+        "Не найдено значение куратора в выпадающем списке, "
+        "которое соответствует значению из таблицы.\n"
+        f"Значение в таблице: {table_value}\n"
+        f"Опции: {options}"
+    )
+
+
+def matching_subcompany_option(options: list[str], code: str) -> str:
+    """
+    Находит option дочернего общества по коду из таблицы.
+
+    Подходит для случаев, когда в таблице отображается только код,
+    а в dropdown значение имеет формат вроде «036 | ГД Уренгой».
+    """
+    for option in options:
+        if subcompany_code(option) == code:
+            return option
+
+    raise AssertionError(
+        "Не найдено ДО в выпадающем списке по коду из таблицы.\n"
+        f"Код в таблице: {code}\n"
+        f"Опции: {options}"
+    )
+
+
+def matching_option_text(options: list[str], table_value: str, option_name: str) -> str:
+    """
+    Находит option, соответствующую текстовому значению из таблицы.
+
+    Используется для статусов, регионов, версий ИП и похожих значений,
+    где текст в таблице и dropdown может отличаться пробелами или форматом.
+    """
+    for option in options:
+        if same_option_text(table_value, option):
+            return option
+
+    raise AssertionError(
+        f"В таблице найдено значение '{option_name}', но в выпадающем "
+        "списке нет соответствующей опции.\n"
+        f"Значение в таблице: {table_value}\n"
+        f"Опции: {options}"
+    )
+
+
+def date_range_from_values(values: list[str]) -> tuple[str, str]:
+    """
+    Возвращает минимальную и максимальную дату из списка значений.
+    Пустые значения игнорируются. Даты ожидаются в формате ДД.ММ.ГГГГ.
+    """
+    dates = sorted(
+        parse_date(value)
+        for value in values
+        if normalized_text(value)
+    )
+
+    if not dates:
+        raise AssertionError(f"Не найдено непустое значение в таблице: {values}")
+
+    return format_date(dates[0]), format_date(dates[-1])
+
+
+def parse_date(value: str) -> date:
+    """Преобразует строку формата ДД.ММ.ГГГГ в date."""
+    return datetime.strptime(value, DATE_FORMAT).date()
+
+
+def format_date(value: date) -> str:
+    """Форматирует date в строку ДД.ММ.ГГГГ."""
+    return value.strftime(DATE_FORMAT)
