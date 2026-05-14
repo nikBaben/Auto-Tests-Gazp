@@ -1,3 +1,9 @@
+"""
+Проверки сортировки значений в фильтрах.
+
+Модуль содержит общие assert-функции для проверки порядка значений
+в выпадающих списках.
+"""
 import re
 
 from fixtures.reports import CsvReport
@@ -31,6 +37,12 @@ def assert_sorted_alphabetically(
     values: list[str],
     report: CsvReport,
 ) -> None:
+    """
+    Проверяет алфавитную сортировку списка.
+
+    Специальные значения вроде пустой строки, «Не указан», «Не указано»
+    и «Не представлялась» должны находиться в конце списка.
+    """
     expected = sorted(values, key=alphabetic_with_special_last)
 
     report.add(
@@ -54,6 +66,12 @@ def assert_sorted_by_leading_number(
     values: list[str],
     report: CsvReport,
 ) -> None:
+    """
+    Проверяет сортировку списка по ведущему числовому коду.
+
+    Ожидаемый порядок: сначала значения с числовым кодом по возрастанию,
+    затем значения без числового кода по алфавиту, затем специальные значения.
+    """
     numeric_values = [value for value in values if has_leading_number(value)]
     text_values = [
         value
@@ -97,6 +115,12 @@ def assert_special_values_at_end(
     values: list[str],
     report: CsvReport,
 ) -> None:
+    """
+    Проверяет, что специальные значения расположены в конце списка.
+
+    Специальными считаются пустое значение, «Не указан», «Не указано»
+    и «Не представлялась».
+    """
     expected = [
         value for value in values
         if not is_special_last_value(value)
@@ -132,18 +156,25 @@ def assert_special_values_at_end(
 
 
 def alphabetic_with_special_last(value: str) -> tuple[bool, str]:
+    """Возвращает ключ сортировки для алфавитного порядка со спец-значениями в конце."""
     return is_special_last_value(value), value.casefold()
 
 
 def is_special_last_value(value: str) -> bool:
+    """Проверяет, относится ли значение к специальным значениям для конца списка."""
     return value.strip() in SPECIAL_LAST_VALUES
 
 
 def has_leading_number(value: str) -> bool:
+    """Проверяет, начинается ли значение с числового кода."""
     return re.match(r"^\s*\d+", value) is not None
 
 
 def leading_number(value: str) -> int:
+    """
+    Возвращает ведущий числовой код из строки.
+    Используется как ключ сортировки для значений формата «001 | ...».
+    """
     match = re.match(r"^\s*(\d+)", value)
     assert match is not None
     return int(match.group(1))
@@ -155,6 +186,12 @@ def assert_sorted_regions_by_name(
     values: list[str],
     report: CsvReport,
 ) -> None:
+    """
+    Проверяет сортировку регионов по названию без учета типа региона.
+
+    При сравнении игнорируются слова вроде «Республика», «область», «край»,
+    «автономный округ» и похожие географические уточнения.
+    """
     expected = sorted(values, key=region_name_with_special_last)
 
     report.add(
@@ -176,10 +213,17 @@ def assert_sorted_regions_by_name(
 
 
 def region_name_with_special_last(value: str) -> tuple[bool, str]:
+    """Возвращает ключ сортировки региона со спец-значениями в конце."""
     return is_special_last_value(value), normalized_region_name(value)
 
 
 def normalized_region_name(value: str) -> str:
+    """
+    Нормализует название региона для сортировки.
+
+    Убирает тип региона из начала или конца строки, а также использует название
+    из скобок, если оно указано в конце значения.
+    """
     region_name = value.strip()
 
     parenthesized_name = re.search(r"\(([^()]+)\)\s*$", region_name)
@@ -205,6 +249,12 @@ def assert_sorted_ip_versions(
     values: list[str],
     report: CsvReport,
 ) -> None:
+    """
+    Проверяет сортировку дат.
+
+    Ожидается сортировка по году и типу версии: диапазон лет, уточненная,
+    квартальная, полугодовая. Специальные значения должны быть в конце.
+    """
     expected = sorted(values, key=ip_version_with_special_last)
 
     report.add(
@@ -226,11 +276,18 @@ def assert_sorted_ip_versions(
 
 
 def ip_version_with_special_last(value: str) -> tuple[bool, int, int, str]:
+    """Возвращает ключ сортировки версии ИП со спец-значениями в конце."""
     year, version_type_order = ip_version_sort_parts(value)
     return is_special_last_value(value), year, version_type_order, value.casefold()
 
 
 def ip_version_sort_parts(value: str) -> tuple[int, int]:
+    """
+    Возвращает год и порядок типа версии ИП для сортировки.
+
+    Если год не найден, значение получает большой технический год,
+    чтобы оказаться после распознанных версий.
+    """
     version = value.strip().casefold()
     year_match = re.match(r"^(\d{4})", version)
 
