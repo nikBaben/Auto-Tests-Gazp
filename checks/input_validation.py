@@ -1,3 +1,10 @@
+"""
+Проверки для тестов валидации полей формы.
+
+Модуль содержит общие assert-функции, которые проверяют,
+что после ввода некорректного значения поле показывает ожидаемые ошибки
+валидации.
+"""
 from fixtures.reports import CsvReport
 
 
@@ -10,6 +17,7 @@ def assert_shows_validation_error(
     actual_error: str,
     report: CsvReport,
 ) -> None:
+    """Проверяет, что поле показывает ожидаемую ошибку валидации."""
     report.add(
         element=element,
         expected=expected_error,
