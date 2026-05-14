@@ -37,6 +37,12 @@ def test_prw_planning_list_applies_object_prw_code_filter(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
 ):
+    """
+    Проверяет применение фильтра «Код ПИР».
+
+    Тест берет существующий код из таблицы, вводит его часть в фильтр
+    и проверяет, что все найденные значения содержат введенный фрагмент.
+    """
     existing_code = first_non_empty(prw_planning_list_page.wait_object_prw_codes())
     entered_value = existing_code[-OBJECT_PRW_CODE_SEARCH_PART_LENGTH:]
 
@@ -54,6 +60,12 @@ def test_prw_planning_list_applies_title_filter(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
 ):
+    """
+    Проверяет применение фильтра «Наименование объекта».
+
+    Тест берет часть существующего названия объекта, применяет фильтр
+    и проверяет найденные значения без учета регистра.
+    """
     entered_value = partial_filter_search_value(
         options=prw_planning_list_page.wait_titles(),
         part_length=TITLE_SEARCH_PART_LENGTH,
@@ -75,6 +87,12 @@ def test_prw_planning_list_applies_projector_curator_filter(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
 ):
+    """
+    Проверяет применение фильтра «Куратор проектировщика».
+
+    Тест выбирает option, соответствующую куратору из таблицы, применяет фильтр
+    и проверяет, что значения колонки соответствуют выбранному куратору.
+    """
     table_value = first_non_empty(prw_planning_list_page.projector_curators())
     selected_option = matching_person_option(
         options=prw_planning_list_page.projector_curator_options(),
@@ -96,6 +114,12 @@ def test_prw_planning_list_applies_planning_curator_filter(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
 ):
+    """
+    Проверяет применение фильтра «Куратор планирования».
+
+    Тест выбирает option, соответствующую куратору из таблицы, применяет фильтр
+    и проверяет, что значения колонки соответствуют выбранному куратору.
+    """
     table_value = first_non_empty(prw_planning_list_page.planning_curators())
     selected_option = matching_person_option(
         options=prw_planning_list_page.planning_curator_options(),
@@ -117,6 +141,12 @@ def test_prw_planning_list_applies_subcompany_filter(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
 ):
+    """
+    Проверяет применение фильтра «ДО».
+
+    Тест берет код ДО из таблицы, находит соответствующую option в dropdown,
+    применяет фильтр и проверяет, что в таблице остались строки с этим кодом.
+    """
     code = first_non_empty(prw_planning_list_page.subcompany_codes())
     selected_option = matching_subcompany_option(
         options=prw_planning_list_page.subcompany_options(),
@@ -138,6 +168,12 @@ def test_prw_planning_list_applies_projection_doc_status_filter(
     prw_planning_list_page: PrwPlanningListPage,
     test_report: CsvReport,
 ):
+    """
+    Проверяет применение фильтра «Статус ПД».
+
+    Тест выбирает статус, который реально присутствует в таблице, применяет
+    фильтр и проверяет соответствие значений колонки выбранному статусу.
+    """
     selected_option = projection_doc_status_for_filter(prw_planning_list_page)
 
     values = prw_planning_list_page.apply_projection_doc_status_filter(
@@ -157,6 +193,7 @@ def test_prw_planning_list_applies_projection_doc_status_filter(
 def projection_doc_status_for_filter(
     page: PrwPlanningListPage,
 ) -> str:
+    """Возвращает подходящую option для проверки фильтра «Статус ПД»."""
     status_from_table = first_non_empty_or_none(page.projection_doc_statuses())
     options = [
         option
