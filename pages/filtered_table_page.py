@@ -1,5 +1,4 @@
 """Базовая логика фильтров и таблиц."""
-
 from collections.abc import Callable
 
 from selenium.webdriver.common.by import By
@@ -7,7 +6,7 @@ from selenium.webdriver.remote.webelement import WebElement
 
 from components.ant_select import AntSelect
 from components.ant_table import AntTable
-from components.schemas.ant_table_schemas import AntTableColumn
+from components.schemas.ant_table_schema import AntTableColumn
 from components.date_input import DateInput
 from components.text_input import TextInput
 from pages.base_page import BasePage
