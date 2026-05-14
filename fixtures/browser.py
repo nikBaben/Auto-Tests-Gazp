@@ -1,3 +1,4 @@
+"""Фикстуры браузера и Selenium-ожиданий."""
 import pytest
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -7,6 +8,7 @@ from config.settings import HEADLESS, SELENIUM_TIMEOUT
 
 @pytest.fixture(scope="session")
 def driver():
+    """Создает Chrome WebDriver на время тестовой сессии."""
     options = webdriver.ChromeOptions()
 
     if HEADLESS:
@@ -25,4 +27,5 @@ def driver():
 
 @pytest.fixture(scope="session")
 def wait(driver):
+    """Создает общий WebDriverWait для тестовой сессии."""
     return WebDriverWait(driver, SELENIUM_TIMEOUT)
