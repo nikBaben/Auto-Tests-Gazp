@@ -37,9 +37,9 @@ class AntTable:
         )
         return self.dom.column_values(column_index, keep_empty=keep_empty)
 
-    def column_index_by_header(self, header_texts: tuple[str, ...]) -> int | None:
-        """Возвращает индекс колонки по возможным текстам заголовка."""
-        return self.column_index(AntTableColumn(headers=header_texts))
+    def column_index_by_header(self, header: str) -> int | None:
+        """Возвращает индекс колонки по тексту заголовка."""
+        return self.column_index(AntTableColumn(header=header))
 
     def column_index(self, column: AntTableColumn) -> int | None:
         """Возвращает индекс колонки по спецификации `AntTableColumn`."""
@@ -50,12 +50,12 @@ class AntTable:
 
     def column_values_by_header(
         self,
-        header_texts: tuple[str, ...],
+        header: str,
         keep_empty: bool = False,
     ) -> list[str]:
         """Возвращает значения колонки по тексту заголовка."""
         return self.column_values_by_spec(
-            AntTableColumn(headers=header_texts),
+            AntTableColumn(header=header),
             keep_empty=keep_empty,
         )
 

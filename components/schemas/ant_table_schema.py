@@ -9,7 +9,6 @@ class AntTableColumn(BaseModel):
     """
     model_config = ConfigDict(frozen=True)
 
-    headers: tuple[str, ...] = ()
+    header: str | None = None
     header_paths: tuple[tuple[str, ...], ...] = ()
     checkbox_label: str | None = None
-
